@@ -1,0 +1,22 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+chromadb = ">=0.5.0"
+flask = ">=3.0.0"
+flask-cors = ">=4.0.0"
+gunicorn = ">=21.2.0"
+python-dotenv = ">=1.0.1"
+google-cloud-firestore = ">=2.16.0"
+openai = ">=1.40.0"
+notebook = ">=7.2.0"
+ipykernel = ">=6.29.0"
+jupyterlab = ">=4.2.0"
+pandas = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.12"
