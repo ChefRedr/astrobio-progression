@@ -66,11 +66,11 @@ def run_pipeline(query: str):
     assert "ids" in matches.keys() and "documents" in matches.keys()
 
     docs = matches["documents"]
-    progresses = np.array([np.float64(computeProgress(doc)) for doc in docs])
+    progresses = np.array([np.float64(computeProgress(doc, query)) for doc in docs])
     return np.average(progresses)
 
 def main():
-    
+
 
 
 if __name__ == '__main__':
