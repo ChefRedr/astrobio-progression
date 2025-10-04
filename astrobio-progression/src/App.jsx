@@ -1,5 +1,5 @@
 import { Routes, Route } from "react-router-dom";
-import HomePage from "./pages/HomePage.jsx";
+import HomePage from "./pages/Home/HomePage.jsx";
 // import LifeSupport from "./studycategories/LifeSupport.jsx";
 // import Agriculture from "./studycategories/Agriculture.jsx";
 // import SpaceHabitation from "./studycategories/SpaceHabitation.jsx";
