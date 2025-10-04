@@ -1,9 +1,8 @@
 # Setup instructions
 
-## Install your dependencies: 
-`pip install -r requirements.txt`
+## Create venv, activate and install dependencies:
 
-## Activate your venv
-
-1. cd into `/server`
-2. `source .venv/Scripts/activate`
+1. cd into `/api`
+2. `python -m venv .venv`
+3. `pip install -r requirements.txt`
+4. `source .venv/Scripts/activate`
