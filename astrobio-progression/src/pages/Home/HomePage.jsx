@@ -1,13 +1,13 @@
 import { useNavigate } from "react-router-dom";
-import ProgressBar from "../components/ProgressBar/ProgressBar.jsx";
+import ProgressBar from "../../components/ProgressBar/ProgressBar.jsx";
+import "./HomePage.css"
 
 function HomePage() {
   const navigate = useNavigate();
 
   return (
     <div className="home-container">
-      <h1 className="page-title">Space Research Progress Dashboard</h1>
-
+      <h1 className="page-title">Space Research Progress</h1>
       <ProgressBar
         label="Sustaining Life Support Systems"
         progress={42}
