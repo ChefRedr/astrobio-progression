@@ -3,6 +3,7 @@
   max-width: 500px;
   margin: 1.2rem auto;
   font-family: system-ui, sans-serif;
+  user-select: none; /* To prevent auto clicks on progress bars */
 }
 
 .progress-label {
@@ -20,6 +21,7 @@
   border-radius: 12px;
   overflow: hidden;
   box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.1);
+  user-select: none; /* To prevent auto clicks on progress bars */
 }
 
 .progress-fill {

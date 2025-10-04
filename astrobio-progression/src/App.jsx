@@ -1,20 +1,16 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import ProgressBar from "./components/ProgressBar/ProgressBar.jsx";
+import { Routes, Route } from "react-router-dom";
+import HomePage from "./pages/HomePage.jsx";
+// import LifeSupport from "./studycategories/LifeSupport.jsx";
+// import Agriculture from "./studycategories/Agriculture.jsx";
+// import SpaceHabitation from "./studycategories/SpaceHabitation.jsx";
+import "./App.css"
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <div>
-      <ProgressBar label="Putting the article in an LLM" progress={3}/>
-      <ProgressBar label="Putting the article in an LLM" progress={3}/>
-      <ProgressBar label="Putting the article in an LLM" progress={3}/>
-      <ProgressBar label="Putting the article in an LLM" progress={3}/>
-    </div>
-  )
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+    </Routes>
+  );
 }
 
-export default App
+export default App;

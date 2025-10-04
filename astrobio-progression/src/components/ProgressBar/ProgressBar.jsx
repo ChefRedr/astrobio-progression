@@ -8,9 +8,9 @@ import "./ProgressBar.css";
  * @param {string} color - Bar color (default: blue)
  */
 
-const ProgressBar = ({ label, progress }) => {
+const ProgressBar = ({ label, progress, onClick }) => {
   return (
-    <div className="progress-container">
+    <div className="progress-container" onClick={onClick} role="button">
       <div className="progress-label">
         <span>{label}</span>
         <span>{progress}%</span>
