@@ -70,7 +70,7 @@ def run_pipeline(query: str):
     return np.average(progresses)
 
 def main():
-
+    
 
 
 if __name__ == '__main__':
