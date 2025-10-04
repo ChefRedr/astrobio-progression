@@ -92,10 +92,17 @@ def scrape_paper(url: str, session: requests.Session) -> Dict:
                                    if i < len(affiliation_tags) else None
                 })
 
+        # Extract abstract paragraphs
+        abstract_paragraphs = []
         abstract_section = soup.find('section', class_='abstract')
-        abstract_text = get_text(abstract_section)
-        if abstract_text:
-            abstract_text = abstract_text.replace('Abstract', '', 1).strip()
+        if abstract_section:
+            for p in abstract_section.find_all('p'):
+                para_text = p.get_text(strip=True)
+                if para_text:
+                    abstract_paragraphs.append({
+                        'text': para_text,
+                        'word_count': count_words(para_text)
+                    })
 
         sections = []
         total_words = 0
@@ -104,16 +111,26 @@ def scrape_paper(url: str, session: requests.Session) -> Dict:
         if main_article:
             for section in main_article.find_all('section', recursive=False):
                 heading = section.find(['h2', 'h3'], class_='pmc_sec_title')
-                paragraphs = section.find_all('p')
-                text = ' '.join(p.get_text(strip=True) for p in paragraphs)
+                heading_text = get_text(heading) if heading else 'Untitled Section'
                 
-                if text:
-                    word_count = count_words(text)
-                    total_words += word_count
+                # Extract paragraphs individually
+                paragraphs = []
+                for p in section.find_all('p'):
+                    para_text = p.get_text(strip=True)
+                    if para_text:
+                        word_count = count_words(para_text)
+                        total_words += word_count
+                        paragraphs.append({
+                            'text': para_text,
+                            'word_count': word_count
+                        })
+                
+                if paragraphs:
                     sections.append({
-                        'heading': get_text(heading) if heading else 'Untitled Section',
-                        'text': text,
-                        'word_count': word_count
+                        'heading': heading_text,
+                        'paragraphs': paragraphs,
+                        'paragraph_count': len(paragraphs),
+                        'total_word_count': sum(p['word_count'] for p in paragraphs)
                     })
 
         references = []
@@ -162,7 +179,7 @@ def scrape_paper(url: str, session: requests.Session) -> Dict:
             missing_fields.append('doi')
         if not pmid:
             missing_fields.append('pmid')
-        if not abstract_text:
+        if not abstract_paragraphs:
             missing_fields.append('abstract')
         
         return {
@@ -183,7 +200,7 @@ def scrape_paper(url: str, session: requests.Session) -> Dict:
                 'issue': get_meta(soup, 'citation_issue'),
                 'pages': get_meta(soup, 'citation_firstpage')
             },
-            'abstract': abstract_text,
+            'abstract_paragraphs': abstract_paragraphs,
             'sections': sections,
             'references': references,
             'figures': figures,
@@ -193,6 +210,8 @@ def scrape_paper(url: str, session: requests.Session) -> Dict:
             'metrics': {
                 'total_word_count': total_words,
                 'section_count': len(sections),
+                'total_paragraph_count': sum(s['paragraph_count'] for s in sections),
+                'abstract_paragraph_count': len(abstract_paragraphs),
                 'reference_count': len(references),
                 'figure_count': len(figures),
                 'table_count': len(tables)
@@ -247,6 +266,7 @@ def transform_for_llm(record: Dict) -> Dict:
     """
     Transform scraped data into an LLM-friendly format.
     Optimized for RAG (Retrieval-Augmented Generation) use cases.
+    Each paragraph is stored individually for easy access.
     """
     if not record.get('success'):
         return {
@@ -268,15 +288,36 @@ def transform_for_llm(record: Dict) -> Dict:
             if name:
                 author_list.append(name)
 
+    # Process abstract paragraphs
+    abstract_paragraphs = []
+    for para in record.get('abstract_paragraphs', []):
+        text = para.get('text', '').strip()
+        if text:
+            abstract_paragraphs.append({
+                'text': text,
+                'word_count': para.get('word_count', count_words(text))
+            })
+
+    # Process sections with individual paragraphs
     sections = []
     for sec in record.get('sections', []):
         heading = sec.get('heading', '').strip()
-        text = sec.get('text', '').strip()
-        if text:
+        paragraphs = []
+        
+        for para in sec.get('paragraphs', []):
+            text = para.get('text', '').strip()
+            if text:
+                paragraphs.append({
+                    'text': text,
+                    'word_count': para.get('word_count', count_words(text))
+                })
+        
+        if paragraphs:
             sections.append({
                 'heading': heading or 'Untitled',
-                'text': text,
-                'word_count': sec.get('word_count', count_words(text))
+                'paragraphs': paragraphs,
+                'paragraph_count': len(paragraphs),
+                'total_word_count': sum(p['word_count'] for p in paragraphs)
             })
 
     references = []
@@ -322,7 +363,7 @@ def transform_for_llm(record: Dict) -> Dict:
         'doi': meta.get('doi'),
         'pmid': meta.get('pmid'),
 
-        'abstract': record.get('abstract', '').strip(),
+        'abstract_paragraphs': abstract_paragraphs,
         'sections': sections,
 
         'references': references,
