@@ -8,7 +8,7 @@ export default function ComparePanel({ selected }) {
   const [comparisonData, setComparisonData] = useState(null);
 
   useEffect(() => {
-    if (selected.length >= 2) {
+    if (selected.length === 2) {
       // 🔧 Replace with backend comparison call
       setComparisonData({
         correlation: [0.8, 0.9, 0.7],
