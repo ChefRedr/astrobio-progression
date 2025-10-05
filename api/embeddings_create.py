@@ -7,7 +7,9 @@ import chromadb.utils.embedding_functions as embedding_functions
 from dotenv import load_dotenv
 import sys
 from relevance_score import computeProgress
-from parsed_data import weights, article_content
+from parsed_data import article_content
+from pprint import pprint
+import pprint
 
 sys.path.insert(0, '..')
 
@@ -38,8 +40,7 @@ dummy_docs = [
     "In the quantum realm, particles flicker in and out of existence, dancing to the tunes of probability."   
 ]
 
-def create_embeddings(documents: list[str], collection_name: str) -> Optional[Client]:
-    ids = list(map(lambda i_x: f"id{i_x[0]}_{i_x[1][:5]}", enumerate(documents)))
+def create_embeddings(documents: list[str], collection_name: str, ids: list[str]) -> None:
     vectors = openai_ef(documents)
 
     collection = client.create_collection(name=collection_name)
@@ -49,38 +50,84 @@ def create_embeddings(documents: list[str], collection_name: str) -> Optional[Cl
         embeddings=vectors
     )
 
-def match_embeddings(query: str, collection_name: str, conditions: dict):
+def get_relevant_articles(query: str, N: int):
+    article_title_matches = client.get_collection(name="article_titles").query(
+        query_embeddings=openai_ef([query]),
+    )
+    article_keyword_matches = client.get_collection(name="article_keywords").query(
+        query_embeddings=openai_ef([query]),
+    )
+
+    assert set(article_title_matches["ids"]) == set(article_keyword_matches["ids"])
+
+    scores: list[tuple[str, float]] = []
+    title_weight = .5
+    keywords_weight = 1
+    for id in article_keyword_matches["ids"]:
+        title_index = article_title_matches["ids"].index(id)
+        keyword_index = article_keyword_matches["ids"].index(id)
+
+        title_dist: float = article_title_matches["distances"][title_index]
+        keywords_dist: float = article_keyword_matches["distances"][keyword_index] 
+
+        score = float(title_weight * title_dist + keywords_weight * keywords_dist)
+        scores.append((article_keyword_matches["ids"][id], score))
+
+    # sort by scores
+    scores.sort(key=lambda x: x[1])
+    assert len(scores) == len(article_title_matches["ids"])
+
+    return scores[:N]
+    
+def compute_score(query: str, collection_name: str, relevant_ids: list[str], N: int):
+    # ids of articles that are releavnt
+    client.get_collection(name=collection_name).update(
+        ids=relevant_ids,
+        metadatas=[{"relevant": True} for _ in relevant_ids]
+    )
+
     matches = client.get_collection(name=collection_name).query(
         query_embeddings=openai_ef([query]),
         n_results=N,
+        where={"relevant": True}
     )
-    return matches
-
-def run_pipeline(query: str):
-    matches = match_embeddings(query=query, collection_name=query, conditions={})
 
     assert "ids" in matches.keys() and "documents" in matches.keys()
 
     docs = matches["documents"]
-    progresses = np.array([np.float64(computeProgress(doc, query)) for doc in docs])
-    return np.average(progresses)
+    # progresses = np.array([np.float64(computeProgress(doc, query)) for doc in docs])
+    # return np.average(progresses)
 
 def main():
+    with open("article_content.txt", "w", encoding='utf-8') as f:
+        f.write(pprint.PrettyPrinter().pformat(article_content[2])) 
+
+    # pprint(f'length is {len(article_content)}')
+    # pprint(article_content[0])
+
+    return
+
+    embeddings_generated = True
     # possible collection names
-    collection_names = ["article_titles", "article_keywords", "article_abstract", "article_paragraphs"]
-
+    collection_names = ["article_titles", "article_keywords", "article_paragraphs"]
+    
     ids = [article['paper_id'] for article in article_content]
-    # check keys are unique identifier
-    assert len(set(ids)) == len(ids)
-    
     titles = [article['title'] for article in article_content]
-    keywords = [article['Keywords'] for article in article_content]
+    keywords = [article['keywords'] if "keywords" in article.keys() else "" for article in article_content]
+    paragraphs = [article['paragraphs'] for article in article_content]
 
-    assert len(titles) == len(article_content)
-    print(titles)
-    
+    # check keys are unique identifier
+    assert len(set(ids)) == len(ids) == len(article_content)
+    assert len(titles) == len(ids)
+    assert len(keywords) == len(ids)
+    assert len(paragraphs) == len(ids)
 
-    
+    if not embeddings_generated:
+        # create titles, keywords, paragraph embeddings. All have the same ids
+        create_embeddings(documents=titles, collection_name="article_titles", ids=ids)
+        create_embeddings(documents=keywords, collection_name="article_titles", ids=ids)
+        create_embeddings(documents=paragraphs, collection_name="article_paragraphs", ids=ids)
+
     return
     
     # Computer progress score
@@ -88,7 +135,6 @@ def main():
     # for query in queries:
         
 
-    pass
 
 if __name__ == '__main__':
     main()

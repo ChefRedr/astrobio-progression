@@ -21,11 +21,12 @@ for entry in article_content:
             text += " " + section.get("text", "")
 
     match = re.search(r"[Kk]eywords?:\s*(.*)", text)
-    if not match:
-        entry["keywords"] = []
-        continue
-    raw = match.group(1).strip()
-    keywords = [kw.strip() for kw in raw.split(",") if kw.strip()]
+    if match:
+        raw = match.group(1).strip()
+        keywords = [kw.strip() for kw in raw.split(",") if kw.strip()]
+    else:
+        # no keywords found in the combined text; continue with empty list
+        keywords = []
 
     cleaned_keywords = []
 
@@ -45,17 +46,60 @@ for entry in article_content:
 
     entry["keywords"] = cleaned_keywords
 
+    # Extract paragraph-sized text pieces into a simple list of strings.
+    # Collect from abstract_paragraphs (if present) and from sections.
+    paragraphs = []
+    # abstract_paragraphs: list of dicts with 'text'
+    if "abstract_paragraphs" in entry and isinstance(entry["abstract_paragraphs"], list):
+        for p in entry["abstract_paragraphs"]:
+            if isinstance(p, dict) and "text" in p and p["text"]:
+                txt = p["text"].strip()
+                if txt:
+                    paragraphs.append(txt)
+
+    # sections may contain 'paragraphs' (list of dicts with 'text') or a 'text' field
+    if "sections" in entry and isinstance(entry["sections"], list):
+        for sec in entry["sections"]:
+            if not isinstance(sec, dict):
+                continue
+            # section-level textual blob
+            if "text" in sec and isinstance(sec["text"], str):
+                txt = sec["text"].strip()
+                if txt:
+                    paragraphs.append(txt)
+
+            # section paragraphs (preferred if present)
+            if "paragraphs" in sec and isinstance(sec["paragraphs"], list):
+                for p in sec["paragraphs"]:
+                    if isinstance(p, dict) and "text" in p and p["text"]:
+                        txt = p["text"].strip()
+                        if txt:
+                            paragraphs.append(txt)
+
+    # set the extracted paragraphs on the entry (list of strings)
+    entry["paragraphs"] = paragraphs
+
 #title
 #keywords
 #abstract
-
-weights = [1, 1, .2]
-fields = ['title', 'Keywords', 'abstract']
 
 counts = [len(e["keywords"]) for e in article_content]
 print(f"Min keywords: {min(counts)}, Max keywords: {max(counts)}, Avg: {sum(counts)/len(counts):.2f}")
 
 # Preview a few
-for entry in article_content[11:20]:
+for entry in article_content[11:15]:
     print(f"\nTitle: {entry.get('title')}")
     print("Keywords:", entry["keywords"])
+    print("Paragraph count:", len(entry["paragraphs"]))
+
+# num_paragraphs = 0
+# paragarphs_below_x = 0
+# for entry in article_content:
+#     num_par = len(entry['paragraphs'])
+#     num_paragraphs += num_par
+#     if num_par < 10:
+#         paragarphs_below_x += 1
+
+# num_paragraphs /= len(article_content)
+# print(f'average number of paragraphs: {num_paragraphs}')
+# print(f'paragraphs below x is: {paragarphs_below_x}')
