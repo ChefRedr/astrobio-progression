@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import Article from "./Article/Article.jsx";
-import ArticleModal from "./ArticleModal/ArticleModal.jsx";
-import placeholderImage from "../../../assets/react.svg";
+import Article from "./Article.jsx";
+import ArticleModal from "./ArticleModal.jsx";
+import placeholderImage from "../../assets/react.svg";
 import "./ArticleSearch.css";
 
 export default function ArticleSearch({ query }) {

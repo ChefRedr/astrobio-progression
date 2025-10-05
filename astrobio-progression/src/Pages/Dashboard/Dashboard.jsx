@@ -1,8 +1,8 @@
-import BarGraph from "./BarGraph/BarGraph.jsx";
-import Heatmap from "./Heatmap/Heatmap.jsx";
-import WordGraph from "./WordGraph/WordGraph.jsx";
-import Consensus from "./Consensus/Consensus.jsx";
-import NavBar from "./NavBar/DashboardNavBar.jsx";
+import BarGraph from "../../components/charts/BarGraph/BarGraph.jsx";
+import Heatmap from "../../components/charts/Heatmap/Heatmap.jsx";
+import WordGraph from "../../components/charts/WordGraph/WordGraph.jsx";
+import Consensus from "../../components/charts/Consensus/Consensus.jsx";
+import NavBar from "../../components/layout/DashboardNavBar/DashboardNavBar.jsx";
 import "./Dashboard.css"
 
 function Dashboard() {
