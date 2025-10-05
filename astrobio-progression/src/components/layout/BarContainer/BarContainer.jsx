@@ -3,8 +3,13 @@ import ProgressBar from "../../ProgressBar/ProgressBar.jsx";
 import { categories } from "./categories.js";
 import "./BarContainer.css";
 
-export default function BarContainer() {
-    const navigate = useNavigate();
+function BarContainer() {
+  const navigate = useNavigate();
+
+  // Helper function to handle navigation to the topic page
+  const handleNavigate = (topic) => {
+    navigate(`/topic/${topic}`);
+  };
 
     return (
         <div>
@@ -19,3 +24,5 @@ export default function BarContainer() {
         </div>
     );
 }
+
+export default BarContainer;

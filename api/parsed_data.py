@@ -3,24 +3,129 @@ import re
 
 article_content = []
 
+
 with open("papers.jsonl", "r", encoding="utf-8") as file:
     for line in file:
         # Each line is a JSON object, so we parse it separately
         article_content.append(json.loads(line))
 
+# Deduplicate by paper_id and sanitize to ensure ChromaDB-compatible unique IDs
+seen_ids = set()
+deduplicated = []
+
+def sanitize_id(raw_id: str) -> str:
+    """Sanitize ID to be ChromaDB-compatible: [a-zA-Z0-9._-], 3-512 chars, start/end with alphanumeric."""
+    # Replace invalid chars with underscore
+    safe = re.sub(r'[^a-zA-Z0-9._-]', '_', raw_id)
+    # Remove leading/trailing non-alphanumeric
+    safe = re.sub(r'^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$', '', safe)
+    # Limit length to 512
+    safe = safe[:512]
+    # Ensure minimum 3 chars
+    if len(safe) < 3:
+        safe = safe + '_id'
+    return safe
+
+for entry in article_content:
+    # ONLY use paper_id field for deduplication
+    entry_id = entry.get("paper_id")
+    
+    # Skip entries without paper_id
+    if entry_id is None or entry_id == "":
+        continue
+    
+    # Convert to string and sanitize
+    raw_id = str(entry_id)
+    sanitized_id = sanitize_id(raw_id)
+    
+    # If sanitized ID collides, append counter to make it unique
+    if sanitized_id in seen_ids:
+        counter = 1
+        while f"{sanitized_id}_{counter}" in seen_ids:
+            counter += 1
+        sanitized_id = f"{sanitized_id}_{counter}"
+    
+    seen_ids.add(sanitized_id)
+    
+    # Store the sanitized ID back in the entry
+    entry["paper_id"] = sanitized_id
+    deduplicated.append(entry)
+
+article_content = deduplicated
+print(f"Loaded {len(article_content)} unique articles by paper_id (dropped {len(seen_ids) - len(article_content)} duplicates).")
+
 # Now `article_content` is a list of dictionaries
 keywords_data = {}
 
+# for entry in article_content:
+#     text = ""
+#     # combine text sources
+#     if "abstract" in entry:
+#         text += entry["abstract"]
+#     if "sections" in entry:
+#         for section in entry["sections"]:
+#             text += " " + section.get("text", "")
+    
+#     full_entry_text = json.dumps(entry, indent=2)
+#     if "Keywords" in full_entry_text or "keywords" in full_entry_text:
+#         print("------ FOUND KEYWORDS IN ENTRY ------")
+#         print(full_entry_text[:1000])  # print the first 1000 characters
+#         for key, value in entry.items():
+#             if isinstance(value, str) and ("Keywords" in value or "keywords" in value):
+#                 print(f"\nFound in key '{key}':")
+#                 print(value[:300])
+#             elif isinstance(value, list):
+#                 for i, item in enumerate(value):
+#                     if isinstance(item, dict):
+#                         for subkey, subval in item.items():
+#                             if isinstance(subval, str) and ("Keywords" in subval or "keywords" in subval):
+#                                 print(f"\nFound in {key}[{i}]['{subkey}']:")
+#                                 print(subval[:300])
+#         break
+    
 for entry in article_content:
-    text = ""
-    # combine text sources
-    if "abstract" in entry:
-        text += entry["abstract"]
-    if "sections" in entry:
-        for section in entry["sections"]:
-            text += " " + section.get("text", "")
+    keywords_found = []
 
-    match = re.search(r"[Kk]eywords?:\s*(.*)", text)
+    # Search in 'abstract' field if present
+    if "abstract" in entry and isinstance(entry["abstract"], str):
+        match = re.search(r"[Kk]eywords?\s*:\s*(.+)", entry["abstract"])
+        if match:
+            raw = match.group(1)
+            keywords_found = [kw.strip() for kw in raw.split(",") if kw.strip()]
+
+    # Search in abstract_paragraphs
+    if not keywords_found and "abstract_paragraphs" in entry:
+        for i, para in enumerate(entry["abstract_paragraphs"]):
+            if isinstance(para, dict) and "text" in para:
+                text = para["text"]
+                match = re.search(r"[Kk]eywords?\s*:\s*(.+)", text)
+                if match:
+                    raw = match.group(1)
+                    keywords_found = [kw.strip() for kw in raw.split(",") if kw.strip()]
+                    print(f"Found keywords in abstract_paragraphs[{i}] for paper {entry.get('paper_id')}: {keywords_found}")
+                    break
+
+    # Search in sections if still not found
+    if not keywords_found and "sections" in entry:
+        for sec in entry["sections"]:
+            if isinstance(sec, dict) and "text" in sec:
+                match = re.search(r"[Kk]eywords?\s*:\s*(.+)", sec["text"])
+                if match:
+                    raw = match.group(1)
+                    keywords_found = [kw.strip() for kw in raw.split(",") if kw.strip()]
+                    print(f"Found keywords in sections for paper {entry.get('paper_id')}: {keywords_found}")
+                    break
+
+    entry["keywords"] = ", ".join(keywords_found)
+
+    match = re.search(r"keywords:\s*(.*)", text, flags=re.S | re.IGNORECASE)
+    if match:
+        print(f"Found in paper {entry.get('paper_id')}: {match.group(0)[:80]}")  # debug
+        raw = match.group(1).strip()
+        keywords = [kw.strip() for kw in raw.split(",") if kw.strip()]
+    else:
+        keywords = []
+    
     if match:
         raw = match.group(1).strip()
         keywords = [kw.strip() for kw in raw.split(",") if kw.strip()]
@@ -35,8 +140,10 @@ for entry in article_content:
     for kw in keywords:
         lower_kw = kw.lower()
         # Stop if it looks like the start of a normal sentence (not a keyword)
-        if re.match(r"^(This|The|We|In|A|An|Our|For|To)\b", kw):
+        if re.match(r"^(this|the|we|in|a|an|our|for|to)\b", lower_kw):
             break
+        # if not keywords and "Keywords" in text:
+        #     print(f"DEBUG — Found 'Keywords:' but parsed none in {entry.get('paper_id')}")
         if any(cutoff in lower_kw for cutoff in CUTOFF_WORDS):
             break
         # Stop if the fragment clearly continues into a sentence
@@ -44,7 +151,8 @@ for entry in article_content:
             break
         cleaned_keywords.append(kw)
 
-    entry["keywords"] = cleaned_keywords
+    # store keywords as a single comma-separated string (empty string if none)
+    entry["keywords"] = ", ".join(cleaned_keywords)
 
     # Extract paragraph-sized text pieces into a simple list of strings.
     # Collect from abstract_paragraphs (if present) and from sections.
@@ -83,14 +191,19 @@ for entry in article_content:
 #keywords
 #abstract
 
-counts = [len(e["keywords"]) for e in article_content]
+# Verify all paper_ids are unique
+all_ids = [e.get("paper_id") for e in article_content]
+assert len(all_ids) == len(set(all_ids)), "ERROR: Duplicate paper_ids found after processing!"
+print(f"✓ All {len(all_ids)} paper_ids are unique and ChromaDB-compatible")
+
+counts = [len(e.get("keywords", "").split(", ")) if e.get("keywords") else 0 for e in article_content]
 print(f"Min keywords: {min(counts)}, Max keywords: {max(counts)}, Avg: {sum(counts)/len(counts):.2f}")
 
 # Preview a few
-for entry in article_content[11:15]:
-    print(f"\nTitle: {entry.get('title')}")
-    print("Keywords:", entry["keywords"])
-    print("Paragraph count:", len(entry["paragraphs"]))
+# for entry in article_content[11:15]:
+#     print(f"\nTitle: {entry.get('title')}")
+#     print("Keywords:", entry["keywords"])
+#     print("Paragraph count:", len(entry["paragraphs"]))
 
 # num_paragraphs = 0
 # paragarphs_below_x = 0

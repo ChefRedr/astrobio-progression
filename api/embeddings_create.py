@@ -1,15 +1,13 @@
-import numpy as np
 import chromadb
 from chromadb.api.client import Client
-from typing import Optional
 import os
 import chromadb.utils.embedding_functions as embedding_functions
 from dotenv import load_dotenv
 import sys
 from relevance_score import computeProgress
+from clean_documents import clean_documents
 from parsed_data import article_content
 from pprint import pprint
-import pprint
 
 sys.path.insert(0, '..')
 
@@ -41,14 +39,30 @@ dummy_docs = [
 ]
 
 def create_embeddings(documents: list[str], collection_name: str, ids: list[str]) -> None:
-    vectors = openai_ef(documents)
+    # Clean documents but preserve original text content for embeddings
+    documents = clean_documents(documents)
+    try:
+        vectors = openai_ef(documents)
 
-    collection = client.create_collection(name=collection_name)
-    collection.add(
-        ids=ids,
-        documents=documents,
-        embeddings=vectors
-    )
+        collection = client.create_collection(name=collection_name)
+        collection.add(
+            ids=ids,
+            documents=documents,
+            embeddings=vectors
+        )
+    except Exception as e:
+        print(f"EXCEPTION OCCURED IN `create_embeddings`")
+        with open('error_content.txt', 'w') as f:
+            for i, doc in enumerate(documents):
+                try:
+                    vectors = openai_ef([doc])
+                except Exception as e:
+                    print('===================================================\n')
+                    print(f'Error occured at below file\n')
+                    print(f'i: \t{i}\n')
+                    print(f'id: \t{ids[i]}\n')
+                    print(f'document: \t{doc}\n')
+
 
 def get_relevant_articles(query: str, N: int):
     article_title_matches = client.get_collection(name="article_titles").query(
@@ -71,7 +85,7 @@ def get_relevant_articles(query: str, N: int):
         keywords_dist: float = article_keyword_matches["distances"][keyword_index] 
 
         score = float(title_weight * title_dist + keywords_weight * keywords_dist)
-        scores.append((article_keyword_matches["ids"][id], score))
+        scores.append((id, score))
 
     # sort by scores
     scores.sort(key=lambda x: x[1])
@@ -98,16 +112,21 @@ def compute_score(query: str, collection_name: str, relevant_ids: list[str], N: 
     # progresses = np.array([np.float64(computeProgress(doc, query)) for doc in docs])
     # return np.average(progresses)
 
+def data_export() -> tuple[list[str], list[str], list[str], list[list[str]]]:
+    ids = [article['paper_id'] for article in article_content]
+    titles = [article['title'] for article in article_content]
+    keywords = [article['keywords'] if "keywords" in article.keys() else "" for article in article_content]
+    paragraphs = [article['paragraphs'] for article in article_content]
+    return ids, titles, keywords, paragraphs
+
 def main():
-    with open("article_content.txt", "w", encoding='utf-8') as f:
-        f.write(pprint.PrettyPrinter().pformat(article_content[2])) 
 
     # pprint(f'length is {len(article_content)}')
     # pprint(article_content[0])
 
-    return
+    # return
 
-    embeddings_generated = True
+    embeddings_generated = False
     # possible collection names
     collection_names = ["article_titles", "article_keywords", "article_paragraphs"]
     
@@ -121,20 +140,32 @@ def main():
     assert len(titles) == len(ids)
     assert len(keywords) == len(ids)
     assert len(paragraphs) == len(ids)
+    assert all([isinstance(t, str) for t in titles])
+    assert all([isinstance(k, str) for k in keywords])
+    assert all([len(ps) >= 1 for ps in paragraphs])
+    assert isinstance(paragraphs, list)
+    assert all(isinstance(ps, list) for ps in paragraphs) and all(isinstance(p, str) for ps in paragraphs for p in ps)
+
+    # pprint.pprint(len(paragraphs[43]))
+    # pprint.pprint(keywords)
+    # pprint.pprint(len(paragraphs))
+    # with open("article_content.txt", "w", encoding='utf-8') as f:
+    #     f.write(pprint.PrettyPrinter().pformat(titles)) 
 
     if not embeddings_generated:
-        # create titles, keywords, paragraph embeddings. All have the same ids
         create_embeddings(documents=titles, collection_name="article_titles", ids=ids)
-        create_embeddings(documents=keywords, collection_name="article_titles", ids=ids)
-        create_embeddings(documents=paragraphs, collection_name="article_paragraphs", ids=ids)
-
+        create_embeddings(documents=keywords, collection_name="article_keywords", ids=ids)
+        for i, id in enumerate(ids):
+            create_embeddings(
+                documents=paragraphs[i], 
+                collection_name=f"article_paragraphs_{id}", 
+                ids=[f'{id}_paragraph_num_{j}' for j in range(len(paragraphs[i]))]
+            )
     return
     
     # Computer progress score
     # queries = ["Potatoes on mars", "Space cats", "Space vehicles"]
     # for query in queries:
-        
-
 
 if __name__ == '__main__':
     main()

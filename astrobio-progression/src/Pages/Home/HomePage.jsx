@@ -6,7 +6,6 @@ import ArticleSearch from "../../components/articles/ArticleSearch.jsx";
 import "./HomePage.css"
 
 function HomePage() {
-
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
 
