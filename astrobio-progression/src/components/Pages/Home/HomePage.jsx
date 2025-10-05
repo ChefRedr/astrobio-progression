@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import ProgressBar from "../../components/ProgressBar/ProgressBar.jsx";
+import ProgressBar from "./ProgressBar/ProgressBar.jsx";
 import "./HomePage.css"
 
 function HomePage() {
