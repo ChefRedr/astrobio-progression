@@ -1,13 +1,3 @@
-/* NAVBAR: never exceed viewport; include padding in width calc */
-/* body {
-  background: radial-gradient(1200px 600px at 120% -10%, rgba(124,156,255,0.1), transparent 60%),
-              radial-gradient(900px 500px at -20% 10%, rgba(38,255,216,0.08), transparent 60%),
-              linear-gradient(180deg, #060913, #0b0f1a);
-  font-family: "Inter", sans-serif;
-  color: #eaf1ff;
-  margin: 0;
-} */
-
 .home-navbar {
   display: flex;
   flex-direction: column;
@@ -61,7 +51,7 @@
 
 .search-button:hover { background-color: #555; }
 
-.back-button {
+.clear-button {
   margin-right: 10px;
   background: rgba(255, 255, 255, 0.1);
   border: none;
@@ -73,7 +63,7 @@
   transition: background 0.2s ease;
   flex: 0 0 auto;
 }
-.back-button:hover { background: rgba(255, 255, 255, 0.2); }
+.clear-button:hover { background: rgba(255, 255, 255, 0.2); }
 
 /* Optional: extra safety for tiny screens */
 @media (max-width: 480px) {

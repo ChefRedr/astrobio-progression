@@ -25,21 +25,20 @@ export default function NavBar({ onSearch, showBack, onBack }) {
   return (
     <nav className="home-navbar">
       <h1 className="title">Space Research Progress</h1>
-
       <form className="navbar-search" onSubmit={handleSubmit}>
         {showBack && (
           <button
             type="button"
-            className="back-button"
+            className="clear-button"
             onClick={onBack}
           >
-            ← Back
+            Clear
           </button>
         )}
 
         <input
           type="text"
-          placeholder="Search"
+          placeholder="Search..."
           value={query}
           onChange={handleChange}
           onKeyDown={handleKeyDown}

@@ -8,7 +8,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
-      <Route path="/dashboard/:category" element={<Dashboard />} />   {/* parameters!! */}
+      <Route path="/dashboard/:category" element={<Dashboard />} />
       <Route path="/topic/:topic" element={<TopicPage />} />
     </Routes>
   );

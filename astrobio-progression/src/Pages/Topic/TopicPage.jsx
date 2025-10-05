@@ -1,13 +1,21 @@
-import React, { useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ArticleGrid from "../../components/topic/ArticleGrid";
 import ComparePanel from "../../components/topic/ComparePanel";
 import BackButton from "../../components/common/BackButton";
+import NavBar from "../../components/layout/DashboardNavBar/DashboardNavBar.jsx";
+import { categories } from "../../components/layout/BarContainer/categories.js";
+import ArticleSearch from "../../components/articles/ArticleSearch.jsx";
 import "./TopicPage.css";
 
 export default function TopicPage() {
   const { topic } = useParams();
   const navigate = useNavigate();
+  const [query, setQuery] = useState("");
+  const hasQuery = query.length > 0;
+  const handleSearch = (q) => setQuery(q.trim());
+  useEffect(() => setQuery(""), [topic]);
+  const cat = useMemo(() => categories.find(c => c.param === topic), [topic]);
 
   const [articles, setArticles] = useState([]);
   const [selectedArticles, setSelectedArticles] = useState([]);
@@ -50,10 +58,17 @@ export default function TopicPage() {
 
   return (
     <div className="topic-page-container">
-      <div className="topic-header">
-        <BackButton onClick={() => navigate("/")} />
-        <h1 className="topic-title">{topic}</h1>
-      </div>
+      <NavBar onSearch={handleSearch} category={cat.label} />
+
+      {hasQuery ? (
+              <main className="search-container" style={{ padding: "14px" }}>
+                <ArticleSearch query={query} />
+              </main>
+            ) : (
+      // <div className="topic-header">
+      //   <BackButton onClick={() => navigate("/")} />
+      //   <h1 className="topic-title">{topic}</h1>
+      // </div>
 
       <div className="topic-content">
         {/* LEFT: Article list */}
@@ -80,6 +95,7 @@ export default function TopicPage() {
           )}
         </div>
       </div>
+      )}
     </div>
   );
 }

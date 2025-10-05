@@ -18,7 +18,7 @@ function BarContainer() {
                     key={cat.param}
                     label={cat.label}
                     progress={cat.progress}
-                    onClick={() => navigate(`/dashboard/${cat.param}`)}
+                    onClick={() => navigate(`/topic/${cat.param}`)}
                 />
             ))}
         </div>

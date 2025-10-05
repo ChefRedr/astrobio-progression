@@ -7,7 +7,6 @@ import "./HomePage.css"
 
 function HomePage() {
   const [query, setQuery] = useState("");
-  const navigate = useNavigate();
 
   const handleSearch = (query) => {
     setQuery(query.trim());

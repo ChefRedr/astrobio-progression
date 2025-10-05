@@ -14,7 +14,7 @@ function WordGraph({ words = [] }) {
     );
 
     const option = {
-        tooltip: { formatter: (p) => `${p.name}: ${p.value}` },
+        tooltip: {show: false},
         series: [
         {
             type: "wordCloud",
