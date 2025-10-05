@@ -1,0 +1,77 @@
+/* === LAYOUT: navbar full-width + content fills viewport === */
+.dashboard-container {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr; /* NavBar height (auto) + the rest */
+}
+
+/* your existing .navbar styles can stay as-is; just ensure width */
+.navbar { width: 100%; }
+
+/* === GRID: 2×2, fills remaining height === */
+.graphs-container {
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);  /* 2 equal rows */
+  gap: 14px;
+  padding: 14px;
+  box-sizing: border-box;
+
+  /* make sure grid fills the available height */
+  min-height: 0;
+}
+
+
+.graphs-container > section {
+  display: flex;
+  flex-direction: column;
+
+  background: rgba(20, 24, 35, 0.65);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.8);
+  padding: 12px;
+
+  min-width: 0;
+  min-height: 0;
+
+  /* remove the fixed max-height! let the grid control size */
+  max-height: none; 
+  overflow: hidden;
+}
+
+
+/* Panel titles */
+.graphs-container > section > h2 {
+  margin: 4px 6px 10px;
+  font-size: 1.02rem;
+  font-weight: 700;
+  background: linear-gradient(90deg, #7c9cff, #26ffd8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Make embedded charts stretch to fill the card */
+.graphs-container > section > *:last-child {
+  flex: 1;      /* the chart wrapper grows */
+  min-height: 0;
+}
+
+/* If your chart component renders an inner <div> or <canvas>, ensure it can grow */
+.graphs-container > section > *:last-child div,
+.graphs-container > section > *:last-child canvas {
+  height: 100%;
+  width: 100%;
+}
+
+/* Responsive: stack to one column on narrow screens */
+@media (max-width: 980px) {
+  .graphs-container {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(4, minmax(0, 300px)); /* give each some height */
+  }
+}
+
