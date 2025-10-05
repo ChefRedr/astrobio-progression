@@ -1,7 +1,5 @@
-import numpy as np
 import chromadb
 from chromadb.api.client import Client
-from typing import Optional, List
 import os
 import chromadb.utils.embedding_functions as embedding_functions
 from dotenv import load_dotenv
@@ -10,8 +8,6 @@ from relevance_score import computeProgress
 from clean_documents import clean_documents
 from parsed_data import article_content
 from pprint import pprint
-import pprint
-import re
 
 sys.path.insert(0, '..')
 
