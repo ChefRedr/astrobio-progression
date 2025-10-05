@@ -3,7 +3,7 @@ import json
 import hashlib
 import time
 from datetime import datetime, timezone
-from typing import Dict, Optional
+from typing import Dict, Optional, Set
 import multiprocessing as mp
 import logging
 from collections import Counter
@@ -36,7 +36,6 @@ logger = logging.getLogger(__name__)
 
 
 def create_session():
-    """Create a requests session with retry logic and connection pooling."""
     session = requests.Session()
     retry_strategy = Retry(
         total=3,
@@ -52,23 +51,19 @@ def create_session():
 
 
 def get_meta(soup: BeautifulSoup, name: str) -> Optional[str]:
-    """Extract metadata from meta tags."""
     tag = soup.find('meta', attrs={'name': name})
     return tag['content'].strip() if tag and tag.has_attr('content') else None
 
 
 def get_text(node) -> str:
-    """Extract clean text from a BeautifulSoup node."""
     return " ".join(node.stripped_strings) if node else ""
 
 
 def count_words(text: str) -> int:
-    """Count words in text."""
     return len(text.split())
 
 
 def scrape_paper(url: str, session: requests.Session) -> Dict:
-    """Scrape a paper from the given URL."""
     try:
         response = session.get(url, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
@@ -92,7 +87,6 @@ def scrape_paper(url: str, session: requests.Session) -> Dict:
                                    if i < len(affiliation_tags) else None
                 })
 
-        # Extract abstract paragraphs
         abstract_paragraphs = []
         abstract_section = soup.find('section', class_='abstract')
         if abstract_section:
@@ -113,7 +107,6 @@ def scrape_paper(url: str, session: requests.Session) -> Dict:
                 heading = section.find(['h2', 'h3'], class_='pmc_sec_title')
                 heading_text = get_text(heading) if heading else 'Untitled Section'
                 
-                # Extract paragraphs individually
                 paragraphs = []
                 for p in section.find_all('p'):
                     para_text = p.get_text(strip=True)
@@ -263,11 +256,6 @@ def scrape_paper(url: str, session: requests.Session) -> Dict:
 
 
 def transform_for_llm(record: Dict) -> Dict:
-    """
-    Transform scraped data into an LLM-friendly format.
-    Optimized for RAG (Retrieval-Augmented Generation) use cases.
-    Each paragraph is stored individually for easy access.
-    """
     if not record.get('success'):
         return {
             'paper_id': record.get('paper_id'),
@@ -288,7 +276,6 @@ def transform_for_llm(record: Dict) -> Dict:
             if name:
                 author_list.append(name)
 
-    # Process abstract paragraphs
     abstract_paragraphs = []
     for para in record.get('abstract_paragraphs', []):
         text = para.get('text', '').strip()
@@ -298,7 +285,6 @@ def transform_for_llm(record: Dict) -> Dict:
                 'word_count': para.get('word_count', count_words(text))
             })
 
-    # Process sections with individual paragraphs
     sections = []
     for sec in record.get('sections', []):
         heading = sec.get('heading', '').strip()
@@ -376,7 +362,6 @@ def transform_for_llm(record: Dict) -> Dict:
 
 
 def process_url(url: str) -> str:
-    """Process a single URL (worker function for multiprocessing)."""
     session = create_session()
     try:
         time.sleep(RATE_LIMIT_DELAY)
@@ -388,7 +373,6 @@ def process_url(url: str) -> str:
 
 
 def analyze_failures(output_file: str = "llm_data.jsonl"):
-    """Analyze the failures in the output file and print a summary."""
     error_counts = Counter()
     failed_urls = []
     status_codes = Counter()
@@ -441,7 +425,6 @@ def analyze_failures(output_file: str = "llm_data.jsonl"):
 
 
 def main():
-    """Main execution function."""
     source_urls = []
     csv_row_count = 0
     empty_urls = 0
@@ -456,7 +439,6 @@ def main():
                     source_urls.append(link)
                 else:
                     empty_urls += 1
-                    logger.warning(f"Empty URL found in CSV row {csv_row_count}")
     except FileNotFoundError:
         print("Error: biopub_data.csv not found")
         return
@@ -477,38 +459,46 @@ def main():
 
     successful = 0
     failed = 0
-    processed_count = 0
+    written = 0
+    skipped_duplicates = 0
+    seen_ids: Set[str] = set()
     
     with mp.Pool(processes=num_workers) as pool, \
          open("llm_data.jsonl", "w", encoding="utf-8") as out:
         
         for result_json in pool.imap_unordered(process_url, source_urls, chunksize=2):
-            out.write(result_json + "\n")
-            out.flush()
-            processed_count += 1
-            
             try:
                 result = json.loads(result_json)
+                paper_id = result.get('paper_id')
+                
+                if paper_id in seen_ids:
+                    skipped_duplicates += 1
+                    logger.warning(f"Duplicate paper_id: {paper_id} - URL: {result.get('source_url')}")
+                    continue
+                
+                seen_ids.add(paper_id)
+                out.write(result_json + "\n")
+                out.flush()
+                written += 1
+                
                 if result.get('status') == 'success':
                     successful += 1
                 else:
                     failed += 1
-            except:
+                
+                if written % 10 == 0:
+                    print(f"Written: {written} | Success: {successful} | Failed: {failed} | Skipped: {skipped_duplicates}")
+                    
+            except Exception as e:
+                logger.error(f"Failed to process result: {e}")
                 failed += 1
-                logger.error(f"Failed to parse JSON result for record {processed_count}")
-            
-            if processed_count % 10 == 0:
-                print(f"Processed {processed_count}/{len(source_urls)} papers (Success: {successful}, Failed: {failed})")
     
     print(f"\nComplete!")
     print(f"  URLs in CSV: {len(source_urls)}")
-    print(f"  Records processed: {processed_count}")
+    print(f"  Records written: {written}")
     print(f"  Success: {successful}")
     print(f"  Failed: {failed}")
-    
-    if processed_count != len(source_urls):
-        print(f"\n⚠️  WARNING: Processed {processed_count} but expected {len(source_urls)}")
-        print(f"  Missing: {len(source_urls) - processed_count} records")
+    print(f"  Duplicates skipped: {skipped_duplicates}")
     
     print(f"\nOutput saved to llm_data.jsonl")
     print(f"Errors logged to scraper_errors.log")
