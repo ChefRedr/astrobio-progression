@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import ProgressBar from "./ProgressBar/ProgressBar.jsx";
+import BarContainer from "./BarContainer/BarContainer.jsx";
+import NavBar from "./NavBar/HomeNavBar.jsx";
 import "./HomePage.css"
 
 function HomePage() {
@@ -7,22 +8,9 @@ function HomePage() {
 
   return (
     <div className="home-container">
-      <h1 className="page-title">Space Research Progress</h1>
-      <ProgressBar
-        label="Sustaining Life Support Systems"
-        progress={42}
-        onClick={() => navigate("/studies/life-support")}
-      />
-      <ProgressBar
-        label="Growing Food on Mars"
-        progress={68}
-        onClick={() => navigate("/studies/agriculture")}
-      />
-      <ProgressBar
-        label="Building Habitable Space Environments"
-        progress={25}
-        onClick={() => navigate("/studies/space-habitation")}
-      />
+      {/* <h1 className="page-title">Space Research Progress</h1> */}
+      <NavBar />
+      <BarContainer />
     </div>
   );
 }
