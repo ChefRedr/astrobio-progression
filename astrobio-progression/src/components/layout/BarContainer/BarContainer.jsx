@@ -1,29 +1,34 @@
-import ProgressBar from "../../ProgressBar/ProgressBar.jsx";
 import { useNavigate } from "react-router-dom";
-import "./BarContainer.css"
+import ProgressBar from "../../ProgressBar/ProgressBar.jsx";
+import "./BarContainer.css";
 
 function BarContainer() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    return (
-        <div>
-            <ProgressBar
-                label="Sustaining Life Support Systems"
-                progress={42}
-                onClick={() => navigate("/studies/life-support")}
-            />
-            <ProgressBar
-                label="Growing Food on Mars"
-                progress={68}
-                onClick={() => navigate("/studies/agriculture")}
-            />
-            <ProgressBar
-                label="Building Habitable Space Environments"
-                progress={25}
-                onClick={() => navigate("/studies/space-habitation")}
-            />
-        </div>
-    )
+  // Helper function to handle navigation to the topic page
+  const handleNavigate = (topic) => {
+    navigate(`/topic/${topic}`);
+  };
 
+  return (
+    <div className="bar-container">
+      <ProgressBar
+        label="Sustaining Life Support Systems"
+        progress={42}
+        onClick={() => handleNavigate("life-support")}
+      />
+      <ProgressBar
+        label="Growing Food on Mars"
+        progress={68}
+        onClick={() => handleNavigate("agriculture")}
+      />
+      <ProgressBar
+        label="Building Habitable Space Environments"
+        progress={25}
+        onClick={() => handleNavigate("space-habitation")}
+      />
+    </div>
+  );
 }
+
 export default BarContainer;

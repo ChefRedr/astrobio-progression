@@ -1,0 +1,69 @@
+.article-card {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    padding: 1.2rem;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    color: #f8f9fa;
+  }
+  
+.article-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+    background: rgba(255, 255, 255, 0.1);
+}
+  
+.article-card .article-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 0.75rem;
+}
+  
+.article-card h3 {
+    font-size: 1.1rem;
+    margin: 0;
+    color: #ffffff;
+    font-weight: 600;
+}
+  
+.article-card .author {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+  
+.article-card .link {
+    font-size: 0.85rem;
+    color: #58a6ff;
+    text-decoration: none;
+    margin-top: 0.5rem;
+    transition: color 0.2s ease;
+}
+  
+.article-card .link:hover {
+    color: #91c9ff;
+}
+  
+/* Selection toggle in top corner */
+.article-card .select-box {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+  
+.article-card .select-box.selected {
+    background: #58a6ff;
+    border-color: #58a6ff;
+}  
