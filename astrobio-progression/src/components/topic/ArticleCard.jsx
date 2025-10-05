@@ -5,16 +5,15 @@ export default function ArticleCard({ article, isSelected, onSelect }) {
   return (
     <div
       className={`article-card ${isSelected ? "selected" : ""}`}
-      onClick={onSelect}
+      onClick={() => onSelect(article.title)}
     >
-      <div className="select-indicator">{isSelected ? "✓" : "+"}</div>
-      <div className="article-content">
+      <div className="article-header">
         <h3>{article.title}</h3>
-        <p>{article.author}</p>
-        <a href={article.link} target="_blank" rel="noreferrer">
-          View Article
-        </a>
+        <p className="author">{article.author}</p>
       </div>
+      <a href={article.link} target="_blank" rel="noreferrer">
+        Read More
+      </a>
     </div>
   );
 }

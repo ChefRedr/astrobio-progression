@@ -64,8 +64,6 @@ def get_relevant_articles(query: str, N: int):
     scores.sort(key=lambda x: x[1])
     scores = scores[:N]
 
-    collection_names = ["article_titles", "article_keywords", "article_paragraphs"]
-
     relevant_ids = [s[0] for s in scores]
     relevant_titles = client.get_collection(name="article_titles").get(ids=relevant_ids)['documents']
     relevant_keywords = client.get_collection(name="article_keywords").get(ids=relevant_ids)['documents']
@@ -86,22 +84,31 @@ def get_relevant_articles(query: str, N: int):
     assert len(relevant_ids) == len(relevant_titles) == len(relevant_keywords) == len(relevant_paragraphs)
     return list(zip(relevant_ids, relevant_titles, relevant_keywords, relevant_paragraphs))
 
-def compute_score(query: str, paragraphs: list[list[str]], N: int):
+def compute_score(query: str, relevant_ids: list[str], paragraphs: list[list[str]], N: int):
 
     overall_score = 0.0
-    for paragraph_list in paragraphs:
-        overall_score += np.average([computeProgress(paragraph, query) for paragraph in paragraph_list])
+    assert len(relevant_ids) == len(paragraphs)
+    for i in range(len(relevant_ids)):
+        paragraph_list = paragraphs[i]
+        id = relevant_ids[i]
+
+        most_relevant_paragraphs = client.get_or_create_collection(name=f"article_paragraphs_{id}").query(
+            query_embeddings=openai_ef([query]),
+            n_results=N
+        )
+        pprint(f'most_relevant_paragraphs is {most_relevant_paragraphs}')
+        return
+        
+            # overall_score += np.average([computeProgress(paragraph, query) for paragraph in paragraph_list])
+    overall_score /= len(paragraphs)
     return overall_score
 
-    #     assert isinstance(matching_paragraphs["documents"], list)
 
-    #     this_article_score = 0
-    #     for paragraph in matching_paragraphs["documents"][0]:
-    #         this_article_score += computeProgress(paragraph, query)
-    #     this_article_score /= len(matching_paragraphs["documents"][0])
-    #     overall_score += this_article_score
-    # overall_score /= len(collection_names)
-    # return overall_score
+relevant_articles = get_relevant_articles('Growing edible plants in space', N=50)
+# pprint(relevant_articles[:2])
+# pprint(f'number of relevant articles is {len(relevant_articles)}\n')
 
-relevant_articles = get_relevant_articles('homo sapiens', N=50)
-pprint(relevant_articles[:2])
+pprint('Computing score...')
+final_score = compute_score('Growing edible plants in space', [x[0] for x in relevant_articles], [x[3] for x in relevant_articles], N=20)
+
+print(f'Final score is {final_score}')

@@ -1,69 +1,100 @@
 .article-card {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 16px;
-    padding: 1.2rem;
-    transition: all 0.25s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    position: relative;
-    color: #f8f9fa;
-  }
-  
+  background: rgba(20, 25, 45, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  color: #f8f9fa;
+  cursor: pointer;
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
 .article-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
-    background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-4px);
+  border-color: #00c6ff;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35),
+              0 0 12px rgba(0, 198, 255, 0.25);
+  background: rgba(30, 35, 55, 0.9);
 }
-  
+
+.article-card.selected {
+  border-color: #0072ff;
+  box-shadow: 0 0 14px rgba(0, 114, 255, 0.4);
+}
+
+/* Header */
 .article-card .article-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: start;
-    margin-bottom: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 0.75rem;
 }
-  
+
 .article-card h3 {
-    font-size: 1.1rem;
-    margin: 0;
-    color: #ffffff;
-    font-weight: 600;
+  font-size: 1.1rem;
+  margin: 0;
+  font-weight: 600;
+  color: #ffffff;
 }
-  
+
 .article-card .author {
-    font-size: 0.9rem;
-    opacity: 0.8;
+  font-size: 0.9rem;
+  opacity: 0.8;
+  color: #aab4e0;
+  margin-top: 4px;
 }
-  
-.article-card .link {
-    font-size: 0.85rem;
-    color: #58a6ff;
-    text-decoration: none;
-    margin-top: 0.5rem;
-    transition: color 0.2s ease;
+
+/* Read More link */
+.article-card a {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: #58a6ff;
+  text-decoration: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.2s ease, color 0.2s ease;
 }
-  
-.article-card .link:hover {
-    color: #91c9ff;
+
+.article-card a:hover {
+  background: rgba(0, 198, 255, 0.15);
+  color: #91c9ff;
+  text-decoration: underline;
 }
-  
-/* Selection toggle in top corner */
+
+/* Selection toggle box (top right) */
 .article-card .select-box {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    width: 20px;
-    height: 20px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background 0.2s ease;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
 }
-  
-.article-card .select-box.selected {
-    background: #58a6ff;
-    border-color: #58a6ff;
-}  
+
+.select-box input {
+  display: none; /* hide default checkbox */
+}
+
+.checkmark {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+  display: inline-block;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.select-box input:checked + .checkmark {
+  background: #58a6ff;
+  border-color: #58a6ff;
+}
+
+.select-box input:disabled + .checkmark {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
