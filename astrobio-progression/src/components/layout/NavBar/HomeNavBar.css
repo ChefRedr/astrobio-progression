@@ -1,10 +1,23 @@
-.navbar {
+/* NAVBAR: never exceed viewport; include padding in width calc */
+/* body {
+  background: radial-gradient(1200px 600px at 120% -10%, rgba(124,156,255,0.1), transparent 60%),
+              radial-gradient(900px 500px at -20% 10%, rgba(38,255,216,0.08), transparent 60%),
+              linear-gradient(180deg, #060913, #0b0f1a);
+  font-family: "Inter", sans-serif;
+  color: #eaf1ff;
+  margin: 0;
+} */
+
+.home-navbar {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   align-items: center;
-  background-color: #222;
-  padding: 1rem;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background: rgba(20, 24, 35, 0.65);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  gap: 1.2rem;
 }
 
 .title {
@@ -13,16 +26,26 @@
   color: white;
 }
 
+/* SEARCH ROW: prevent children from stretching wider than viewport */
 .navbar-search {
   display: flex;
   gap: 0.5rem;
+  max-width: 100%;       /* don't exceed viewport */
+  flex-wrap: wrap;       /* allow wrapping on small screens */
+  justify-content: center;
 }
 
+/* INPUT: clamp width and let it shrink on small screens */
 .search-input {
   padding: 0.4rem 0.6rem;
   border-radius: 4px;
   border: 1px solid #ccc;
-  width: 600px;
+
+  width: 100%;
+  max-width: 600px;           /* upper bound (your original intent) */
+  min-width: 0;               /* allow flex shrink */
+  box-sizing: border-box;     /* include padding in width */
+  flex: 1 1 320px;            /* grow, shrink, preferred min width */
 }
 
 .search-button {
@@ -33,11 +56,10 @@
   color: white;
   cursor: pointer;
   transition: background 0.2s ease;
+  flex: 0 0 auto;             /* don't stretch button */
 }
 
-.search-button:hover {
-  background-color: #555;
-}
+.search-button:hover { background-color: #555; }
 
 .back-button {
   margin-right: 10px;
@@ -49,8 +71,11 @@
   cursor: pointer;
   font-size: 0.9rem;
   transition: background 0.2s ease;
+  flex: 0 0 auto;
 }
+.back-button:hover { background: rgba(255, 255, 255, 0.2); }
 
-.back-button:hover {
-  background: rgba(255, 255, 255, 0.2);
+/* Optional: extra safety for tiny screens */
+@media (max-width: 480px) {
+  .search-input { flex-basis: 100%; max-width: 100%; }
 }

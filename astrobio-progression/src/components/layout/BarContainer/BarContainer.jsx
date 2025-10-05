@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import ProgressBar from "../../ProgressBar/ProgressBar.jsx";
+import { categories } from "./categories.js";
 import "./BarContainer.css";
 
 function BarContainer() {
@@ -10,25 +11,18 @@ function BarContainer() {
     navigate(`/topic/${topic}`);
   };
 
-  return (
-    <div className="bar-container">
-      <ProgressBar
-        label="Sustaining Life Support Systems"
-        progress={42}
-        onClick={() => handleNavigate("life-support")}
-      />
-      <ProgressBar
-        label="Growing Food on Mars"
-        progress={68}
-        onClick={() => handleNavigate("agriculture")}
-      />
-      <ProgressBar
-        label="Building Habitable Space Environments"
-        progress={25}
-        onClick={() => handleNavigate("space-habitation")}
-      />
-    </div>
-  );
+    return (
+        <div>
+            {categories.map(cat => (
+                <ProgressBar
+                    key={cat.param}
+                    label={cat.label}
+                    progress={cat.progress}
+                    onClick={() => navigate(`/dashboard/${cat.param}`)}
+                />
+            ))}
+        </div>
+    );
 }
 
 export default BarContainer;
