@@ -1,0 +1,96 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Inter:wght@400;600&display=swap');
+
+body {
+  background: radial-gradient(1200px 600px at 120% -10%, rgba(124,156,255,0.1), transparent 60%),
+              radial-gradient(900px 500px at -20% 10%, rgba(38,255,216,0.08), transparent 60%),
+              linear-gradient(180deg, #060913, #0b0f1a);
+  font-family: "Inter", sans-serif;
+  color: #eaf1ff;
+  margin: 0;
+}
+
+.dashboard-navbar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2rem 1rem;
+  background: rgba(20, 24, 35, 0.65);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  gap: 1.2rem;
+}
+
+.title {
+  font-family: "Orbitron", sans-serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  background: linear-gradient(90deg, #7c9cff, #26ffd8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 16px rgba(124,156,255,0.35);
+  text-align: center;
+  margin: 0;
+}
+
+.navbar-search {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 480px;
+}
+
+.search-input {
+  flex: 1;
+  height: 42px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(15, 20, 35, 0.8);
+  color: #eaf1ff;
+  font-size: 0.95rem;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+
+.search-input::placeholder {
+  color: #98a0b8;
+}
+
+.search-input:focus {
+  border-color: #7c9cff;
+  box-shadow: 0 0 8px rgba(124,156,255,0.4);
+  outline: none;
+}
+
+.search-button {
+  height: 42px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #7c9cff, #26ffd8);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.search-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 12px rgba(124,156,255,0.5);
+}
+
+.search-button:active {
+  transform: translateY(0);
+}
+
+/* Optional: extra safety for tiny screens */
+@media (max-width: 480px) {
+  .dashboard-navbar {
+    flex-direction: column;
+  }
+  .search-input { flex-basis: 100%; max-width: 100%; }
+}

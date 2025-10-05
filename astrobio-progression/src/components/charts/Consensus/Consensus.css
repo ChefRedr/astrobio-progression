@@ -1,0 +1,73 @@
+/* Let just the consensus panel scroll internally (not the whole page) */
+.consensus-panel {
+  overflow: auto;                 /* override the default overflow:hidden on sections */
+  display: flex;
+  flex-direction: column;
+  min-height: 0;                  /* required for nested flex/scroll to work */
+}
+
+/* Make the grid fill the remaining space under the <h2> and scroll if needed */
+.consensus-panel .consensus-grid {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+
+  /* adaptive tile grid */
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  align-content: start;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+/* small, resilient cards */
+.consensus-card {
+  box-sizing: border-box;
+  background: rgba(20, 24, 35, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+
+  /* topic left (wraps) + percent right (fixed) */
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 8px;
+  align-items: center;
+
+  min-width: 0; /* avoid overflow in grids */
+}
+
+/* keep whole words; clamp to two lines to keep tiles compact */
+.consensus-topic {
+  font-weight: 600;
+  font-size: 0.85rem;
+  line-height: 1.2;
+  margin-right: 6px;
+
+  white-space: normal;     /* allow wrapping at spaces */
+  word-break: normal;      /* don't break inside words */
+  overflow-wrap: normal;   /* don't force breaks */
+
+  display: -webkit-box;    /* clamp to 2 lines */
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.consensus-value {
+  font-size: 1.1rem;
+  font-weight: 800;
+  white-space: nowrap;     /* keep “85%” together */
+  text-align: right;
+}
+
+/* If you want tiles even tighter on very small screens */
+@media (max-width: 420px) {
+  .consensus-panel .consensus-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+  }
+}
+

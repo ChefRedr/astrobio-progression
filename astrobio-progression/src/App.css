@@ -1,11 +1,15 @@
+html, body, #root {
+  height: 100%;         /* full height for all root elements */
+  margin: 0;
+}
+
 body {
   background: 
-    linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), /* translucent overlay */
-    url('./assets/astronaut.jpg'); /* your image */
-  background-size: cover;
-  background-position: center;
+    linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), 
+    url('./assets/astronaut.jpg');
+  background-size: cover;        /* scale image to always cover */
+  background-position: center;   /* keep it centered */
   background-repeat: no-repeat;
-  height: 100vh;
+  background-attachment: fixed;  /* optional: makes it stick while scrolling */
   color: white;
-  margin: 0;
 }

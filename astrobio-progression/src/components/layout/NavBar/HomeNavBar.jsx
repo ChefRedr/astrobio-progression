@@ -23,7 +23,7 @@ export default function NavBar({ onSearch, showBack, onBack }) {
   };
 
   return (
-    <nav className="navbar">
+    <nav className="home-navbar">
       <h1 className="title">Space Research Progress</h1>
 
       <form className="navbar-search" onSubmit={handleSubmit}>

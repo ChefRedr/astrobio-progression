@@ -1,26 +1,23 @@
 import React, { useState } from "react";
 import "./DashboardNavBar.css";
 
-export default function NavBar({ onSearch }) {
+export default function NavBar({ onSearch, category }) {
   const [query, setQuery] = useState("");
 
   const handleChange = (e) => {
     setQuery(e.target.value);
-    if (onSearch) {
-      onSearch(e.target.value); // send query to parent if provided
-    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (onSearch) {
-      onSearch(query);
+      onSearch(query.trim());
     }
   };
 
   return (
-    <nav className="navbar">
-      <h1 className="title">Space Research Progress</h1>
+    <nav className="dashboard-navbar">
+      <h1 className="title">{category}</h1>
       <form className="navbar-search" onSubmit={handleSubmit}>
         <input
           type="text"
@@ -28,9 +25,11 @@ export default function NavBar({ onSearch }) {
           value={query}
           onChange={handleChange}
           className="search-input"
+          aria-label="Search articles"
         />
         <button type="submit" className="search-button">Search</button>
       </form>
     </nav>
   );
+
 }
