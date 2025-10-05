@@ -15,6 +15,9 @@ function Dashboard() {
   const [query, setQuery] = useState("");
 
   const handleSearch = (q) => setQuery(q.trim());
+  const handleBack = () => {
+    setQuery("");
+  };
 
   // clear search when changing category
   useEffect(() => setQuery(""), [param]);
@@ -50,10 +53,15 @@ function Dashboard() {
   }));
 
   const hasQuery = query.length > 0;
+  const showBack = () => {
+    console.log("showBack", query);
+    return !!query;
+  }
+  
 
   return (
     <div className="dashboard-container">
-      <NavBar onSearch={handleSearch} category={cat.label} />
+      <NavBar onSearch={handleSearch} showBack={hasQuery} onBack={handleBack} category={cat.label} />
 
       {hasQuery ? (
         <main className="search-container" style={{ padding: "14px" }}>
