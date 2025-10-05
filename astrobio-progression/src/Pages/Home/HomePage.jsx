@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import BarContainer from "./BarContainer/BarContainer.jsx";
-import NavBar from "./NavBar/HomeNavBar.jsx";
-import ArticleSearch from "../../Common/ArticleSearch/ArticleSearch.jsx";
+import BarContainer from "../../components/layout/BarContainer/BarContainer.jsx";
+import NavBar from "../../components/layout/NavBar/HomeNavBar.jsx";
+import ArticleSearch from "../../components/articles/ArticleSearch.jsx";
 import "./HomePage.css"
 
 function HomePage() {

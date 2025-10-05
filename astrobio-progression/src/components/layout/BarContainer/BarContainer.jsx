@@ -1,4 +1,4 @@
-import ProgressBar from "../ProgressBar/ProgressBar.jsx";
+import ProgressBar from "../../ProgressBar/ProgressBar.jsx";
 import { useNavigate } from "react-router-dom";
 import "./BarContainer.css"
 
