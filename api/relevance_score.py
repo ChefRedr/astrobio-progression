@@ -1,7 +1,6 @@
 from openai import OpenAI
 import numpy as np
 from dotenv import load_dotenv
-import chromadb
 import os
 import chromadb.utils.embedding_functions as embedding_functions
 

@@ -1,16 +1,15 @@
 import numpy as np
 import chromadb
-from chromadb import api 
 from chromadb.api.client import Client
 from typing import Optional
 import os
 import chromadb.utils.embedding_functions as embedding_functions
 from dotenv import load_dotenv
 import sys
-import pprint
+from relevance_score import computeProgress
+from parsed_data import weights, article_content
 
 sys.path.insert(0, '..')
-
 
 load_dotenv()
 
@@ -39,11 +38,8 @@ dummy_docs = [
     "In the quantum realm, particles flicker in and out of existence, dancing to the tunes of probability."   
 ]
 
-def store_embeddings_in_db(client):
-    pass
-
 def create_embeddings(documents: list[str], collection_name: str) -> Optional[Client]:
-    ids = list(map(lambda i_x: f"id{i_x[0]}", enumerate(documents)))
+    ids = list(map(lambda i_x: f"id{i_x[0]}_{i_x[1][:5]}", enumerate(documents)))
     vectors = openai_ef(documents)
 
     collection = client.create_collection(name=collection_name)
@@ -70,8 +66,29 @@ def run_pipeline(query: str):
     return np.average(progresses)
 
 def main():
+    # possible collection names
+    collection_names = ["article_titles", "article_keywords", "article_abstract", "article_paragraphs"]
 
+    ids = [article['paper_id'] for article in article_content]
+    # check keys are unique identifier
+    assert len(set(ids)) == len(ids)
+    
+    titles = [article['title'] for article in article_content]
+    keywords = [article['Keywords'] for article in article_content]
 
+    assert len(titles) == len(article_content)
+    print(titles)
+    
+
+    
+    return
+    
+    # Computer progress score
+    # queries = ["Potatoes on mars", "Space cats", "Space vehicles"]
+    # for query in queries:
+        
+
+    pass
 
 if __name__ == '__main__':
     main()
