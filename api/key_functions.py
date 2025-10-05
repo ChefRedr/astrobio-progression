@@ -5,13 +5,10 @@ from dataclasses import dataclass
 import math
 import os
 import json
+from dotenv import load_dotenv
 
-# ---- External data source: your parallel lists come from here ----
-# embeddings_create.py must define:
-#   ids = [article['paper_id'] for article in article_content]
-#   titles = [article['title'] for article in article_content]
-#   keywords = [article['keywords'] if "keywords" in article else "" for article in article_content]
-#   paragraphs = [article['paragraphs'] for article in article_content]
+load_dotenv()
+
 from embeddings_create import data_export
 
 # ---- OpenAI client (no hardcoded keys) ----
@@ -23,6 +20,7 @@ if not OPENAI_API_KEY:
         "OPENAI_API_KEY is not set. Do `export OPENAI_API_KEY='...'` before running."
     )
 client = OpenAI(api_key=OPENAI_API_KEY)
+CHROMA_OPENAI_API_KEY = OPENAI_API_KEY
 
 # Models (feel free to change if you prefer different SKUs)
 CHAT_MODEL = "gpt-4o-mini"
