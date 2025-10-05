@@ -3,6 +3,7 @@ import re
 
 article_content = []
 
+
 with open("papers.jsonl", "r", encoding="utf-8") as file:
     for line in file:
         # Each line is a JSON object, so we parse it separately
@@ -56,16 +57,75 @@ print(f"Loaded {len(article_content)} unique articles by paper_id (dropped {len(
 # Now `article_content` is a list of dictionaries
 keywords_data = {}
 
+# for entry in article_content:
+#     text = ""
+#     # combine text sources
+#     if "abstract" in entry:
+#         text += entry["abstract"]
+#     if "sections" in entry:
+#         for section in entry["sections"]:
+#             text += " " + section.get("text", "")
+    
+#     full_entry_text = json.dumps(entry, indent=2)
+#     if "Keywords" in full_entry_text or "keywords" in full_entry_text:
+#         print("------ FOUND KEYWORDS IN ENTRY ------")
+#         print(full_entry_text[:1000])  # print the first 1000 characters
+#         for key, value in entry.items():
+#             if isinstance(value, str) and ("Keywords" in value or "keywords" in value):
+#                 print(f"\nFound in key '{key}':")
+#                 print(value[:300])
+#             elif isinstance(value, list):
+#                 for i, item in enumerate(value):
+#                     if isinstance(item, dict):
+#                         for subkey, subval in item.items():
+#                             if isinstance(subval, str) and ("Keywords" in subval or "keywords" in subval):
+#                                 print(f"\nFound in {key}[{i}]['{subkey}']:")
+#                                 print(subval[:300])
+#         break
+    
 for entry in article_content:
-    text = ""
-    # combine text sources
-    if "abstract" in entry:
-        text += entry["abstract"]
-    if "sections" in entry:
-        for section in entry["sections"]:
-            text += " " + section.get("text", "")
+    keywords_found = []
 
-    match = re.search(r"[Kk]eywords?:\s*(.*)", text)
+    # Search in 'abstract' field if present
+    if "abstract" in entry and isinstance(entry["abstract"], str):
+        match = re.search(r"[Kk]eywords?\s*:\s*(.+)", entry["abstract"])
+        if match:
+            raw = match.group(1)
+            keywords_found = [kw.strip() for kw in raw.split(",") if kw.strip()]
+
+    # Search in abstract_paragraphs
+    if not keywords_found and "abstract_paragraphs" in entry:
+        for i, para in enumerate(entry["abstract_paragraphs"]):
+            if isinstance(para, dict) and "text" in para:
+                text = para["text"]
+                match = re.search(r"[Kk]eywords?\s*:\s*(.+)", text)
+                if match:
+                    raw = match.group(1)
+                    keywords_found = [kw.strip() for kw in raw.split(",") if kw.strip()]
+                    print(f"Found keywords in abstract_paragraphs[{i}] for paper {entry.get('paper_id')}: {keywords_found}")
+                    break
+
+    # Search in sections if still not found
+    if not keywords_found and "sections" in entry:
+        for sec in entry["sections"]:
+            if isinstance(sec, dict) and "text" in sec:
+                match = re.search(r"[Kk]eywords?\s*:\s*(.+)", sec["text"])
+                if match:
+                    raw = match.group(1)
+                    keywords_found = [kw.strip() for kw in raw.split(",") if kw.strip()]
+                    print(f"Found keywords in sections for paper {entry.get('paper_id')}: {keywords_found}")
+                    break
+
+    entry["keywords"] = ", ".join(keywords_found)
+
+    match = re.search(r"keywords:\s*(.*)", text, flags=re.S | re.IGNORECASE)
+    if match:
+        print(f"Found in paper {entry.get('paper_id')}: {match.group(0)[:80]}")  # debug
+        raw = match.group(1).strip()
+        keywords = [kw.strip() for kw in raw.split(",") if kw.strip()]
+    else:
+        keywords = []
+    
     if match:
         raw = match.group(1).strip()
         keywords = [kw.strip() for kw in raw.split(",") if kw.strip()]
@@ -80,8 +140,10 @@ for entry in article_content:
     for kw in keywords:
         lower_kw = kw.lower()
         # Stop if it looks like the start of a normal sentence (not a keyword)
-        if re.match(r"^(This|The|We|In|A|An|Our|For|To)\b", kw):
+        if re.match(r"^(this|the|we|in|a|an|our|for|to)\b", lower_kw):
             break
+        # if not keywords and "Keywords" in text:
+        #     print(f"DEBUG — Found 'Keywords:' but parsed none in {entry.get('paper_id')}")
         if any(cutoff in lower_kw for cutoff in CUTOFF_WORDS):
             break
         # Stop if the fragment clearly continues into a sentence
