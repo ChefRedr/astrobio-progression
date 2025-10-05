@@ -6,11 +6,13 @@ import BackButton from "../../components/common/BackButton";
 import "./TopicPage.css";
 
 export default function TopicPage() {
-  const { topic } = useParams(); // assuming route like /topic/:topic
+  const { topic } = useParams();
   const navigate = useNavigate();
 
   const [articles, setArticles] = useState([]);
   const [selectedArticles, setSelectedArticles] = useState([]);
+  const [consoleArticles, setConsoleArticles] = useState([]); // <-- snapshot
+  const [mode, setMode] = useState(null); // "insight" | "compare" | null
 
   useEffect(() => {
     async function fetchArticles() {
@@ -30,12 +32,20 @@ export default function TopicPage() {
     setSelectedArticles((prev) =>
       prev.includes(title)
         ? prev.filter((t) => t !== title)
-        : [...prev, title]
+        : prev.length < 2
+        ? [...prev, title]
+        : prev
     );
   };
 
-  const handleCompare = () => {
-    console.log("Comparing:", selectedArticles);
+  const handleAction = () => {
+    if (selectedArticles.length === 1) {
+      setConsoleArticles([...selectedArticles]); // snapshot
+      setMode("insight");
+    } else if (selectedArticles.length === 2) {
+      setConsoleArticles([...selectedArticles]); // snapshot
+      setMode("compare");
+    }
   };
 
   return (
@@ -45,16 +55,31 @@ export default function TopicPage() {
         <h1 className="topic-title">{topic}</h1>
       </div>
 
-      {selectedArticles.length >= 2 && (
-        <ComparePanel selected={selectedArticles} />
-      )}
+      <div className="topic-content">
+        {/* LEFT: Article list */}
+        <div className="articles-panel">
+          <ArticleGrid
+            articles={articles}
+            selected={selectedArticles}
+            onSelect={handleSelect}
+            onAction={handleAction}
+          />
+        </div>
 
-      <ArticleGrid
-        articles={articles}
-        selected={selectedArticles}
-        onSelect={handleSelect}
-        onCompare={handleCompare}
-      />
+        {/* RIGHT: Console */}
+        <div className="console-panel">
+          {mode === "insight" && consoleArticles.length === 1 && (
+            <div className="insight-panel">
+              <h2>Insights for {consoleArticles[0]}</h2>
+              <p>🔬 Keywords, summary, methodology breakdown, etc.</p>
+            </div>
+          )}
+
+          {mode === "compare" && consoleArticles.length === 2 && (
+            <ComparePanel selected={consoleArticles} />
+          )}
+        </div>
+      </div>
     </div>
   );
 }

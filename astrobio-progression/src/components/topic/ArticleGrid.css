@@ -1,17 +1,33 @@
+.article-grid-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: 100%;
+}
+
 .article-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 1.5rem;
-    padding: 2rem;
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-  
-  .article-grid h2 {
-    font-size: 1.8rem;
-    text-align: center;
-    margin-bottom: 1rem;
-    color: #f5f6f7;
-  }
-  
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 18px;
+  overflow-y: auto;
+  padding-bottom: 20px;
+}
+
+/* Action button at bottom */
+.action-button {
+  align-self: center;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #00c6ff, #0072ff);
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+.action-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 14px rgba(0, 180, 255, 0.6);
+}
