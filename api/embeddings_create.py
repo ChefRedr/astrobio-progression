@@ -51,7 +51,7 @@ def create_embeddings(documents: list[str], collection_name: str, ids: list[str]
             embeddings=vectors
         )
     except Exception as e:
-        print(f"EXCEPTION OCCURED IN `create_embeddings`")
+        print(f"EXCEPTION OCCURED IN `create_embeddings`, exception is {e}\n")
         with open('error_content.txt', 'w') as f:
             for i, doc in enumerate(documents):
                 try:
