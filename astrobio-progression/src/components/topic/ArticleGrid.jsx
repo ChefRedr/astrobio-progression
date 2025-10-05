@@ -1,26 +1,20 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { fetchArticles } from "../../services/api";
 import ArticleCard from "./ArticleCard";
 import "./ArticleGrid.css";
 
-export default function ArticleGrid({ articles, selected, onSelect, onAction }) {
-  return (
-    <div className="article-grid-container">
-      <div className="article-grid">
-        {articles.map((article) => (
-          <ArticleCard
-            key={article.title}
-            article={article}
-            isSelected={selected.includes(article.title)}
-            onSelect={onSelect}
-          />
-        ))}
-      </div>
+export default function ArticleGrid({ topic }) {
+  const [articles, setArticles] = useState([]);
 
-      {selected.length > 0 && (
-        <button className="action-button" onClick={onAction}>
-          {selected.length === 1 ? "Generate Insights" : "Compare Articles"}
-        </button>
-      )}
+  useEffect(() => {
+    fetchArticles(topic).then(setArticles).catch(console.error);
+  }, [topic]);
+
+  return (
+    <div className="article-grid">
+      {articles.map((a) => (
+        <ArticleCard key={a.id} article={a} />
+      ))}
     </div>
   );
 }
