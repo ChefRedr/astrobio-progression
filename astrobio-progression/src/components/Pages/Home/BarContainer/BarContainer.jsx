@@ -1,7 +1,10 @@
 import ProgressBar from "../ProgressBar/ProgressBar.jsx";
+import { useNavigate } from "react-router-dom";
 import "./BarContainer.css"
 
 function BarContainer() {
+    const navigate = useNavigate();
+
     return (
         <div>
             <ProgressBar
