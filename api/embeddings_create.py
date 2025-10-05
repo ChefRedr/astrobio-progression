@@ -112,6 +112,13 @@ def compute_score(query: str, collection_name: str, relevant_ids: list[str], N: 
     # progresses = np.array([np.float64(computeProgress(doc, query)) for doc in docs])
     # return np.average(progresses)
 
+def data_export() -> tuple[list[str], list[str], list[str], list[list[str]]]:
+    ids = [article['paper_id'] for article in article_content]
+    titles = [article['title'] for article in article_content]
+    keywords = [article['keywords'] if "keywords" in article.keys() else "" for article in article_content]
+    paragraphs = [article['paragraphs'] for article in article_content]
+    return ids, titles, keywords, paragraphs
+
 def main():
 
     # pprint(f'length is {len(article_content)}')
