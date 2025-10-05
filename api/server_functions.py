@@ -61,61 +61,47 @@ def get_relevant_articles(query: str, N: int):
         
         scores.append((id, score))
 
-        # title_index = article_title_matches["ids"].index(id)
-        # keyword_index = article_keyword_matches["ids"].index(id)
-
-        # title_dist: float = article_title_matches["distances"][title_index]
-        # keywords_dist: float = article_keyword_matches["distances"][keyword_index] 
-
-
-    # sort by scores
-    # assert len(scores) == len(article_title_matches["ids"])
     scores.sort(key=lambda x: x[1])
     scores = scores[:N]
 
     collection_names = ["article_titles", "article_keywords", "article_paragraphs"]
 
-    relevant_ids = [id_score[0] for id_score in scores]
-    relevant_paragraph_ids: list[list[str]] = [f'{id}_paragraph_num_{j}' for id in relevant_ids for j in range(len(client))]
-
+    relevant_ids = [s[0] for s in scores]
     relevant_titles = client.get_collection(name="article_titles").get(ids=relevant_ids)['documents']
     relevant_keywords = client.get_collection(name="article_keywords").get(ids=relevant_ids)['documents']
 
-    for i, id in enumerate(ids):
-        create_embeddings(
-            documents=paragraphs[i], 
-            collection_name=f"article_paragraphs_{id}", 
-            ids=[f'{id}_paragraph_num_{j}' for j in range(len(paragraphs[i]))]
-        )
+    relevant_paragraphs: list[list[str]] = []
+    for i, id in enumerate(relevant_ids):
+        collection_name = f"article_paragraphs_{id}"
+        try:
+            collection = client.get_collection(name=collection_name)
+            paragraphs_ids: list[str] = collection.get()["ids"]
+            this_article_relevant_paragraphs: list[str] = collection.get(ids=paragraphs_ids)["documents"]
+            relevant_paragraphs.append(this_article_relevant_paragraphs)
+        except Exception as e:
+            print(f"Warning: Could not get collection '{collection_name}': {e}")
+            relevant_paragraphs.append([])
+            continue
+        
+    assert len(relevant_ids) == len(relevant_titles) == len(relevant_keywords) == len(relevant_paragraphs)
+    return list(zip(relevant_ids, relevant_titles, relevant_keywords, relevant_paragraphs))
 
-    paragraphs: list[list[str]] = [
-        client.get_collection(name=f"article_paragraphs_{id}").get(ids=)
-    ]
+def compute_score(query: str, paragraphs: list[list[str]], N: int):
 
-    return list(zip(relevant_ids, relevant_titles, relevant_keywords))
-
-def compute_score(query: str, collection_names: list[str], N: int):
-    # ids of articles that are releavnt
-    # client.get_collection(name=collection_name).update(
-    #     ids=relevant_ids,
-    #     metadatas=[{"relevant": True} for _ in relevant_ids]
-    # )
-
-    overall_score = 0
-    for paragraph_collection in collection_names:
-        matching_paragraphs = client.get_collection(name=paragraph_collection).query(
-            query_embeddings=openai_ef([query]),
-            n_results=N,
-        )
-
-        assert isinstance(matching_paragraphs["documents"], list)
-
-        this_article_score = 0
-        for paragraph in matching_paragraphs["documents"][0]:
-            this_article_score += computeProgress(paragraph, query)
-        this_article_score /= len(matching_paragraphs["documents"][0])
-        overall_score += this_article_score
-    overall_score /= len(collection_names)
+    overall_score = 0.0
+    for paragraph_list in paragraphs:
+        overall_score += np.average([computeProgress(paragraph, query) for paragraph in paragraph_list])
     return overall_score
 
+    #     assert isinstance(matching_paragraphs["documents"], list)
+
+    #     this_article_score = 0
+    #     for paragraph in matching_paragraphs["documents"][0]:
+    #         this_article_score += computeProgress(paragraph, query)
+    #     this_article_score /= len(matching_paragraphs["documents"][0])
+    #     overall_score += this_article_score
+    # overall_score /= len(collection_names)
+    # return overall_score
+
 relevant_articles = get_relevant_articles('homo sapiens', N=50)
+pprint(relevant_articles[:2])
