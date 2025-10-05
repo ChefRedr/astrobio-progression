@@ -7,6 +7,7 @@ import chromadb.utils.embedding_functions as embedding_functions
 from dotenv import load_dotenv
 import sys
 from relevance_score import computeProgress
+from clean_documents import clean_documents
 from parsed_data import article_content
 from pprint import pprint
 import pprint
@@ -41,28 +42,31 @@ dummy_docs = [
     "In the quantum realm, particles flicker in and out of existence, dancing to the tunes of probability."   
 ]
 
-def clean_documents(documents: list[str]):
-    for i, doc in enumerate(documents):
-        if len(doc) == 0:
-            documents[i] = '.'
-            continue
-            
-        safe_name = re.sub(r'[^a-zA-Z0-9._-]', '_', doc)
-        safe_name = re.sub(r'^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$', '', safe_name)
-
-        documents[i] = safe_name
-    return documents
-
 def create_embeddings(documents: list[str], collection_name: str, ids: list[str]) -> None:
+    # Clean documents but preserve original text content for embeddings
     documents = clean_documents(documents)
-    vectors = openai_ef(documents)
+    try:
+        vectors = openai_ef(documents)
 
-    collection = client.create_collection(name=collection_name)
-    collection.add(
-        ids=ids,
-        documents=documents,
-        embeddings=vectors
-    )
+        collection = client.create_collection(name=collection_name)
+        collection.add(
+            ids=ids,
+            documents=documents,
+            embeddings=vectors
+        )
+    except Exception as e:
+        print(f"EXCEPTION OCCURED IN `create_embeddings`")
+        with open('error_content.txt', 'w') as f:
+            for i, doc in enumerate(documents):
+                try:
+                    vectors = openai_ef([doc])
+                except Exception as e:
+                    print('===================================================\n')
+                    print(f'Error occured at below file\n')
+                    print(f'i: \t{i}\n')
+                    print(f'id: \t{ids[i]}\n')
+                    print(f'document: \t{doc}\n')
+
 
 def get_relevant_articles(query: str, N: int):
     article_title_matches = client.get_collection(name="article_titles").query(

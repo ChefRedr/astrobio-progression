@@ -26,3 +26,6 @@ replay_pid*
 
 .venv
 .env
+
+**/__pycache__/
+**/chroma/
